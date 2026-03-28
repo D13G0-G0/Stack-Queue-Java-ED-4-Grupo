@@ -1,16 +1,17 @@
 import java.util.Random;
 
-public class ImplementacionListas {
+public class Listas {
 
     public static void main(String[] args) {    
-        long[] tamanos = {10, 100, 1000, 10000, 100000, 1000000, 10000000}; 
+        long[] tamanos = {10, 100, 1000, 10000, 100000, 1000000}; 
         Random rand = new Random();
 
-        System.out.println("==================================================================================");
-        System.out.println("      ANALISIS DE COMPLEJIDAD: DoubleListWithTail");
-        System.out.println("==================================================================================");
-        System.out.printf("%-12s | %-15s | %-15s | %-15s | %-15s\n", "Tamaño (N)", "PushBack (ns)", "Find (ns)", "PopBack (ns)", "PushFront (ns)");
-        System.out.println("----------------------------------------------------------------------------------");
+        System.out.println("====================================================================================================================================");
+        System.out.println("                                       ANALISIS DE COMPLEJIDAD");
+        System.out.println("====================================================================================================================================");
+        System.out.printf("%-10s | %-12s | %-10s | %-10s | %-12s | %-12s | %-12s | %-10s\n", 
+            "Tamaño(N)", "PushBack", "Find", "PopBack", "PushFront", "AddAfter", "AddBefore", "Erase");
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------");
 
         for (long n : tamanos) {
             DoubleListWithTail<Integer> lista = new DoubleListWithTail<>();
@@ -23,23 +24,36 @@ public class ImplementacionListas {
 
             lista.PushBack(-999); 
             long inicioFind = System.nanoTime();
-            lista.Find(-999);
+            Listas.Nodo<Integer> nodoReferencia = lista.Find(-999);
             long finFind = System.nanoTime() - inicioFind;
+
+            long inicioAfter = System.nanoTime();
+            lista.addAfter(nodoReferencia, 555);
+            long finAfter = System.nanoTime() - inicioAfter;
+
+            long inicioBefore = System.nanoTime();
+            lista.addBefore(nodoReferencia, 444);
+            long finBefore = System.nanoTime() - inicioBefore;
+
+            long inicioErase = System.nanoTime();
+            lista.erase(-999);
+            long finErase = System.nanoTime() - inicioErase;
 
             long inicioPop = System.nanoTime();
             lista.PopBack();
             long finPop = System.nanoTime() - inicioPop;
 
-            long inicioFront=System.nanoTime();
+            long inicioFront = System.nanoTime();
             lista.PushFront(rand.nextInt(1000));
-            long finFront=System.nanoTime()-inicioFront;
+            long finFront = System.nanoTime() - inicioFront;
 
-            System.out.printf("%-12d | %-15d | %-15d | %-15d | %-15d\n", n, finPush, finFind, finPop, finFront);
+            System.out.printf("%-10d | %-12d | %-10d | %-10d | %-12d | %-12d | %-12d | %-10d\n", 
+                n, finPush, finFind, finPop, finFront, finAfter, finBefore, finErase);
 
             lista = null;
             System.gc();
         }
-        System.out.println("==================================================================================");
+        System.out.println("====================================================================================================================================");
     }
 
     static class Nodo<T> {
@@ -54,144 +68,42 @@ public class ImplementacionListas {
         void PopFront();
         void PopBack();
         Nodo<T> Find(T valor);
+        void addAfter(Nodo<T> node, T valor);  
+        void addBefore(Nodo<T> node, T valor); 
+        void erase(T valor);                  
         boolean isEmpty();
     }
 
-    static class SimpleLinkedList<T> implements List<T> {
-        Nodo<T> head;
-        public boolean isEmpty() { return head == null; }
-        public void PushFront(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            nuevo.next = head;
-            head = nuevo;
-        }
-        public void PushBack(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            if (isEmpty()) head = nuevo;
-            else {
-                Nodo<T> temp = head;
-                while (temp.next != null) temp = temp.next;
-                temp.next = nuevo;
-            }
-        }
-        public void PopFront() { if (!isEmpty()) head = head.next; }
-        public void PopBack() {
-            if (isEmpty()) return;
-            if (head.next == null) head = null;
-            else {
-                Nodo<T> temp = head;
-                while (temp.next.next != null) temp = temp.next;
-                temp.next = null;
-            }
-        }
-        public Nodo<T> Find(T valor) {
-            Nodo<T> temp = head;
-            while (temp != null) {
-                if (temp.valor.equals(valor)) return temp;
-                temp = temp.next;
-            }
-            return null;
-        }
-    }
-
-    static class SimpleListWithTail<T> implements List<T> {
-        Nodo<T> head, tail;
-        public boolean isEmpty() { return head == null; }
-        public void PushFront(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            if (isEmpty()) head = tail = nuevo;
-            else { nuevo.next = head; head = nuevo; }
-        }
-        public void PushBack(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            if (isEmpty()) head = tail = nuevo;
-            else { tail.next = nuevo; tail = nuevo; }
-        }
-        public void PopFront() {
-            if (isEmpty()) return;
-            head = head.next;
-            if (head == null) tail = null;
-        }
-        public void PopBack() {
-            if (isEmpty()) return;
-            if (head == tail) head = tail = null;
-            else {
-                Nodo<T> temp = head;
-                while (temp.next != tail) temp = temp.next;
-                temp.next = null;
-                tail = temp;
-            }
-        }
-        public Nodo<T> Find(T valor) {
-            Nodo<T> temp = head;
-            while (temp != null) {
-                if (temp.valor.equals(valor)) return temp;
-                temp = temp.next;
-            }
-            return null;
-        }
-    }
-
-    static class DoubleLinkedList<T> implements List<T> {
-        Nodo<T> head;
-        public boolean isEmpty() { return head == null; }
-        public void PushFront(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            if (!isEmpty()) { nuevo.next = head; head.prev = nuevo; }
-            head = nuevo;
-        }
-        public void PushBack(T valor) {
-            Nodo<T> nuevo = new Nodo<>(valor);
-            if (isEmpty()) head = nuevo;
-            else {
-                Nodo<T> temp = head;
-                while (temp.next != null) temp = temp.next;
-                temp.next = nuevo; nuevo.prev = temp;
-            }
-        }
-        public void PopFront() { if (!isEmpty()) { head = head.next; if (head != null) head.prev = null; } }
-        public void PopBack() {
-            if (isEmpty()) return;
-            if (head.next == null) head = null;
-            else {
-                Nodo<T> temp = head;
-                while (temp.next != null) temp = temp.next;
-                temp.prev.next = null;
-            }
-        }
-        public Nodo<T> Find(T valor) {
-            Nodo<T> temp = head;
-            while (temp != null) {
-                if (temp.valor.equals(valor)) return temp;
-                temp = temp.next;
-            }
-            return null;
-        }
-    }
-
+    // Implementación detallada solicitada
     static class DoubleListWithTail<T> implements List<T> {
         Nodo<T> head, tail;
+
         public boolean isEmpty() { return head == null; }
+
         public void PushFront(T valor) {
             Nodo<T> nuevo = new Nodo<>(valor);
             if (isEmpty()) head = tail = nuevo;
             else { nuevo.next = head; head.prev = nuevo; head = nuevo; }
         }
+
         public void PushBack(T valor) {
             Nodo<T> nuevo = new Nodo<>(valor);
             if (isEmpty()) head = tail = nuevo;
             else { tail.next = nuevo; nuevo.prev = tail; tail = nuevo; }
         }
+
         public void PopFront() {
             if (isEmpty()) return;
             head = head.next;
             if (head != null) head.prev = null; else tail = null;
         }
+
         public void PopBack() {
             if (isEmpty()) return;
             if (head == tail) head = tail = null;
             else { tail = tail.prev; tail.next = null; }
         }
+
         public Nodo<T> Find(T valor) {
             Nodo<T> temp = head;
             while (temp != null) {
@@ -200,5 +112,52 @@ public class ImplementacionListas {
             }
             return null;
         }
+
+        @Override
+        public void addAfter(Nodo<T> node, T valor) {
+            if (node == null) return;
+            Nodo<T> nuevo = new Nodo<>(valor);
+            nuevo.next = node.next;
+            nuevo.prev = node;
+            if (node.next != null) {
+                node.next.prev = nuevo;
+            } else {
+                tail = nuevo;
+            }
+            node.next = nuevo;
+        }
+
+        @Override
+        public void addBefore(Nodo<T> node, T valor) {
+            if (node == null) return;
+            Nodo<T> nuevo = new Nodo<>(valor);
+            nuevo.prev = node.prev;
+            nuevo.next = node;
+            if (node.prev != null) {
+                node.prev.next = nuevo;
+            } else {
+                head = nuevo;
+            }
+            node.prev = nuevo;
+        }
+
+        @Override
+        public void erase(T valor) {
+            Nodo<T> target = Find(valor);
+            if (target == null) return;
+
+            if (target.prev != null) {
+                target.prev.next = target.next;
+            } else {
+                head = target.next;
+            }
+
+            if (target.next != null) {
+                target.next.prev = target.prev;
+            } else {
+                tail = target.prev;
+            }
+        }
     }
+    
 }
